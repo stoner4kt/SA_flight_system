@@ -1,7 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -10,424 +10,320 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
   --color-card-border: hsl(var(--card-border));
-
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-popover-border: hsl(var(--popover-border));
-
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-primary-border: var(--primary-border);
-
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-secondary-border: var(--secondary-border);
-
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-muted-border: var(--muted-border);
-
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-accent-border: var(--accent-border);
-
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-destructive-border: var(--destructive-border);
-
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
-
   --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-border: hsl(var(--sidebar-border));
-  --color-sidebar-primary: hsl(var(--sidebar-primary));
-  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-  --color-sidebar-primary-border: var(--sidebar-primary-border);
-  --color-sidebar-accent: hsl(var(--sidebar-accent));
-  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-  --color-sidebar-accent-border: var(--sidebar-accent-border);
-  --color-sidebar-ring: hsl(var(--sidebar-ring));
-
   --font-sans: var(--app-font-sans);
-  --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
-:root {
-  --button-outline: rgba(0, 0, 0, 0.1);
-  --badge-outline: rgba(0, 0, 0, 0.05);
-
-  /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: -8; /* In terms of percentages */
-
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(0, 0, 0, 0.03);
-  --elevate-2: rgba(0, 0, 0, 0.08);
-
-  --background: red; /*replace with H S L */
-
-  --foreground: red; /*replace with H S L */
-
-  --border: red; /*replace with H S L */
-
-  --card: red; /*replace with H S L */
-
-  --card-foreground: red; /*replace with H S L */
-
-  --card-border: red; /*replace with H S L */
-
-  --sidebar: red; /*replace with H S L */
-
-  --sidebar-foreground: red; /*replace with H S L */
-
-  --sidebar-border: red; /*replace with H S L */
-
-  --sidebar-primary: red; /*replace with H S L */
-
-  --sidebar-primary-foreground: red; /*replace with H S L */
-
-  --sidebar-accent: red; /*replace with H S L */
-
-  --sidebar-accent-foreground: red; /*replace with H S L */
-
-  --sidebar-ring: red; /*replace with H S L */
-
-  --popover: red; /*replace with H S L */
-
-  --popover-foreground: red; /*replace with H S L */
-
-  --popover-border: red; /*replace with H S L */
-
-  --primary: red; /*replace with H S L */
-
-  --primary-foreground: red; /*replace with H S L */
-
-  --secondary: red; /*replace with H S L */
-
-  --secondary-foreground: red; /*replace with H S L */
-
-  --muted: red; /*replace with H S L */
-
-  --muted-foreground: red; /*replace with H S L */
-
-  --accent: red; /*replace with H S L */
-
-  --accent-foreground: red; /*replace with H S L */
-
-  --destructive: red; /*replace with H S L */
-
-  --destructive-foreground: red; /*replace with H S L */
-
-  --input: red; /*replace with H S L */
-  --ring: red; /*replace with H S L */
-  --chart-1: red; /*replace with H S L */
-  --chart-2: red; /*replace with H S L */
-  --chart-3: red; /*replace with H S L */
-  --chart-4: red; /*replace with H S L */
-  --chart-5: red; /*replace with H S L */
-
+:root, .dark {
+  color-scheme: dark;
+  --background: 211 34% 8%;
+  --foreground: 204 24% 91%;
+  --border: 210 21% 19%;
+  --card: 212 31% 11%;
+  --card-foreground: 204 24% 91%;
+  --card-border: 210 21% 20%;
+  --sidebar: 213 35% 9%;
+  --sidebar-foreground: 204 24% 91%;
+  --sidebar-border: 210 21% 19%;
+  --sidebar-primary: 195 88% 57%;
+  --sidebar-primary-foreground: 211 34% 8%;
+  --sidebar-accent: 210 25% 15%;
+  --sidebar-accent-foreground: 204 24% 91%;
+  --sidebar-ring: 195 88% 57%;
+  --popover: 212 31% 11%;
+  --popover-foreground: 204 24% 91%;
+  --primary: 195 88% 57%;
+  --primary-foreground: 211 34% 8%;
+  --secondary: 210 25% 15%;
+  --secondary-foreground: 204 24% 91%;
+  --muted: 211 24% 14%;
+  --muted-foreground: 210 13% 59%;
+  --accent: 41 94% 60%;
+  --accent-foreground: 211 34% 8%;
+  --destructive: 2 72% 58%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 210 21% 22%;
+  --ring: 195 88% 57%;
+  --chart-1: 195 88% 57%;
+  --chart-2: 41 94% 60%;
+  --chart-3: 160 49% 54%;
+  --chart-4: 23 83% 61%;
+  --chart-5: 225 54% 66%;
   --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  --radius: 0.5rem; /* 8px */
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
-  --shadow-sm:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-md:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-lg:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-xl:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-
-  /* Automatically computed borders - intensity can be controlled by the user by the --opaque-button-border-intensity setting */
-
-  /* Fallback for older browsers */
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(
-    from hsl(var(--sidebar-primary)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(
-    from hsl(var(--sidebar-accent)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
-  --primary-border: hsl(var(--primary));
-  --primary-border: hsl(
-    from hsl(var(--primary)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
-  --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(
-    from hsl(var(--secondary)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
-  --muted-border: hsl(var(--muted));
-  --muted-border: hsl(
-    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) /
-      alpha
-  );
-
-  /* Fallback for older browsers */
-  --accent-border: hsl(var(--accent));
-  --accent-border: hsl(
-    from hsl(var(--accent)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
-  --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(
-    from hsl(var(--destructive)) h s
-      calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
+  --app-font-mono: 'JetBrains Mono', monospace;
+  --radius: 0.6rem;
+  --button-outline: rgba(255,255,255,.1);
+  --badge-outline: rgba(255,255,255,.06);
+  --elevate-1: rgba(255,255,255,.035);
+  --elevate-2: rgba(255,255,255,.07);
+  --opaque-button-border-intensity: 8;
 }
 
-.dark {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
-
-  --opaque-button-border-intensity: 9; /* In terms of percentages */
-
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(255, 255, 255, 0.04);
-  --elevate-2: rgba(255, 255, 255, 0.09);
-
-  --background: red; /*replace with H S L */
-
-  --foreground: red; /*replace with H S L */
-
-  --border: red; /*replace with H S L */
-
-  --card: red; /*replace with H S L */
-
-  --card-foreground: red; /*replace with H S L */
-
-  --card-border: red; /*replace with H S L */
-
-  --sidebar: red; /*replace with H S L */
-
-  --sidebar-foreground: red; /*replace with H S L */
-
-  --sidebar-border: red; /*replace with H S L */
-
-  --sidebar-primary: red; /*replace with H S L */
-
-  --sidebar-primary-foreground: red; /*replace with H S L */
-
-  --sidebar-accent: red; /*replace with H S L */
-
-  --sidebar-accent-foreground: red; /*replace with H S L */
-
-  --sidebar-ring: red; /*replace with H S L */
-
-  --popover: red; /*replace with H S L */
-
-  --popover-foreground: red; /*replace with H S L */
-
-  --popover-border: red; /*replace with H S L */
-
-  --primary: red; /*replace with H S L */
-
-  --primary-foreground: red; /*replace with H S L */
-
-  --secondary: red; /*replace with H S L */
-
-  --secondary-foreground: red; /*replace with H S L */
-
-  --muted: red; /*replace with H S L */
-
-  --muted-foreground: red; /*replace with H S L */
-
-  --accent: red; /*replace with H S L */
-
-  --accent-foreground: red; /*replace with H S L */
-
-  --destructive: red; /*replace with H S L */
-
-  --destructive-foreground: red; /*replace with H S L */
-
-  /* Used as the border around inputs. Dark mode: Should be a border that is light enough to have high contrast when rendered on a --card background. More contrast than standard --border */
-  --input: red; /*replace with H S L */
-  --ring: red; /*replace with H S L */
-  --chart-1: red; /*replace with H S L */
-  --chart-2: red; /*replace with H S L */
-  --chart-3: red; /*replace with H S L */
-  --chart-4: red; /*replace with H S L */
-  --chart-5: red; /*replace with H S L */
-
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-sm:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-md:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-lg:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-xl:
-    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
-    0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--app-font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
-  }
+button, input { font: inherit; }
+button { color: inherit; }
+::selection { color: #07151d; background: #69d9f5; }
+.mono { font-family: var(--app-font-mono); font-variant-numeric: tabular-nums; }
+.app-shell { min-height: 100dvh; background: #101a23; }
+.topbar {
+  height: 64px; display: flex; align-items: center; gap: 30px; padding: 0 28px;
+  border-bottom: 1px solid #283640; background: #111b24; position: relative; z-index: 5;
 }
+.brand { display:flex; align-items:center; gap:11px; text-decoration:none; color:inherit; min-width:235px; }
+.brand-mark { width:32px; height:32px; display:grid; place-items:center; color:#07151d; background:#5ed3ef; border-radius:9px; }
+.brand-title { font-size:13px; font-weight:800; letter-spacing:.045em; }
+.brand-sub { color:#82939e; font-size:9px; letter-spacing:.16em; margin-top:3px; }
+.nav-links { display:flex; align-items:center; gap:7px; height:100%; }
+.nav-link { height:100%; display:flex; align-items:center; gap:8px; padding:0 14px; color:#8999a4; text-decoration:none; font-size:12px; border-bottom:2px solid transparent; transition:color .18s,border-color .18s; }
+.nav-link:hover,.nav-link.active { color:#dbe8ec; }
+.nav-link.active { border-color:#5ed3ef; }
+.topbar-right { margin-left:auto; display:flex; align-items:center; gap:19px; }
+.connection { display:flex; align-items:center; gap:8px; color:#9caeb7; font-size:11px; }
+.live-dot { width:7px;height:7px;border-radius:50%;background:#61d5aa;box-shadow:0 0 0 3px #61d5aa20; }
+.connection.offline .live-dot { background:#f2aa52;box-shadow:0 0 0 3px #f2aa5220; }
+.top-clock { color:#9eabb3; font-size:10px; }
+.page { max-width:1600px; margin:0 auto; padding:24px 28px 32px; }
+.page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.eyebrow { color:#62cfe9; font:600 10px var(--app-font-mono); letter-spacing:.16em; text-transform:uppercase; }
+.page-title { margin:7px 0 0; font-size:25px; letter-spacing:-.045em; line-height:1.1; }
+.page-subtitle { color:#8999a4; margin:7px 0 0; font-size:12px; }
+.headline-side { display:flex; align-items:center; gap:9px; color:#8d9da6; font-size:11px; }
+.pill { border:1px solid #30414c; border-radius:5px; padding:6px 9px; color:#aebdc4; font:500 10px var(--app-font-mono); }
+.live-pill { border-color:#28564c; background:#152c2b; color:#82dbb7; }
+.summary-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border:1px solid #2a3944; border-radius:8px; background:#15212a; margin-bottom:16px; overflow:hidden; }
+.summary-cell { padding:13px 18px; border-right:1px solid #2a3944; min-width:0; }
+.summary-cell:last-child { border:0; }
+.summary-label { color:#8d9da6; font-size:10px; display:flex; gap:7px; align-items:center; letter-spacing:.035em; }
+.summary-value { margin-top:7px; font:600 21px var(--app-font-mono); letter-spacing:-.055em; color:#e5eef0; }
+.summary-value.cyan { color:#68d6ef; }
+.summary-value.amber { color:#f1bb64; }
+.summary-caption { color:#71838d; font-size:9px; margin-left:8px; font-family:var(--app-font-sans); letter-spacing:0; }
+.workspace { display:grid; grid-template-columns:minmax(340px, 390px) minmax(0,1fr); gap:15px; min-height:610px; }
+.flight-panel,.map-panel,.surface { background:#15212a; border:1px solid #2a3944; border-radius:8px; overflow:hidden; }
+.flight-panel { display:flex; flex-direction:column; min-height:590px; }
+.panel-head { padding:15px 16px 12px; border-bottom:1px solid #293943; }
+.panel-title-row { display:flex; align-items:center; justify-content:space-between; }
+.panel-title { margin:0; font-size:13px; font-weight:650; }
+.result-count { color:#8fa0a9; font:10px var(--app-font-mono); }
+.search-wrap { position:relative; margin-top:12px; }
+.search-wrap svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#7f929d; }
+.search-input { width:100%; height:36px; background:#101a22; border:1px solid #30414c; border-radius:5px; color:#dce7ea; padding:0 11px 0 34px; outline:none; font-size:11px; transition:border-color .15s; }
+.search-input:focus { border-color:#59cbe7; box-shadow:0 0 0 2px #59cbe71c; }
+.search-input::placeholder { color:#72838d; }
+.filter-row { display:flex; gap:6px; margin-top:10px; }
+.filter-button { cursor:pointer; border:1px solid #30414c; border-radius:4px; padding:6px 10px; background:transparent; color:#9aabb3; font-size:10px; transition:all .16s; }
+.filter-button:hover { color:#dce7ea; border-color:#58717d; }
+.filter-button.selected { color:#63d4ef; border-color:#317d8d; background:#18303a; }
+.flight-list { overflow:auto; flex:1; max-height:510px; }
+.flight-row { display:block; width:100%; text-align:left; padding:12px 15px; border:0; border-bottom:1px solid #263640; background:transparent; cursor:pointer; transition:background .15s; }
+.flight-row:hover { background:#1a2a34; }
+.flight-row.selected { background:#18303a; box-shadow:inset 2px 0 #5ed3ef; }
+.flight-row-top,.flight-row-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.callsign { color:#e4edf0; font:600 12px var(--app-font-mono); letter-spacing:.025em; }
+.airline { color:#83949e; font-size:10px; margin-top:4px; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px; }
+.flight-meta { display:flex; gap:10px; color:#91a2aa; font:10px var(--app-font-mono); }
+.flight-altitude { color:#c2d0d5; }
+.flight-altitude.warn { color:#efb85e; }
+.status-tag { color:#77d6b3; font:9px var(--app-font-mono); letter-spacing:.03em; }
+.status-tag.ground { color:#f0b55b; }
+.empty-state { padding:34px 22px; text-align:center; color:#aab9bf; }
+.empty-icon { width:43px;height:43px; margin:0 auto 12px; display:grid;place-items:center;border:1px solid #354954;border-radius:50%;color:#5ed3ef;background:#1b2b34; }
+.empty-state strong { display:block; font-size:12px; font-weight:600; }
+.empty-state p { color:#84959e; font-size:10px; line-height:1.6; margin:6px 0 0; }
+.map-panel { display:flex; flex-direction:column; min-height:590px; }
+.map-toolbar { display:flex; align-items:center; gap:12px; padding:12px 15px; background:#15212a; border-bottom:1px solid #293943; }
+.map-title-group { display:flex; align-items:center; gap:9px; }
+.map-title { font-size:11px; font-weight:650; }
+.map-area-label { color:#7f929b; font-size:10px; }
+.map-tools { margin-left:auto; display:flex; gap:6px; align-items:center; }
+.map-tool { width:29px;height:29px; display:grid;place-items:center; background:#101a22; border:1px solid #2b3b46; border-radius:4px; color:#a3b2b9; cursor:pointer; }
+.map-tool:hover { color:#63d4ef; border-color:#478696; }
+.map-canvas { position:relative; overflow:hidden; flex:1; min-height:460px; background:#12232c; isolation:isolate; }
+.map-canvas:before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(90deg,rgba(13,27,36,.22),rgba(13,27,36,.12)); }
+.map-grid { position:absolute; inset:0; z-index:2; background-image:linear-gradient(#80b5c00b 1px,transparent 1px),linear-gradient(90deg,#80b5c00b 1px,transparent 1px); background-size:70px 70px; pointer-events:none; }
+.map-canvas svg.map-lines { position:absolute; inset:0; width:100%;height:100%; z-index:2; overflow:visible; pointer-events:none; }
+.map-label { fill:#b7cbd0; font:10px var(--app-font-mono); letter-spacing:.08em; paint-order:stroke; stroke:#14252d; stroke-width:3px; }
+.map-coordinate { fill:#829ca6; font:9px var(--app-font-mono); }
+.marker-button { position:absolute; z-index:4; transform:translate(-50%,-50%); width:25px;height:25px; display:grid; place-items:center; border:0; background:transparent; cursor:pointer; transition:transform .18s; }
+.marker-button:hover,.marker-button.focused { z-index:6; transform:translate(-50%,-50%) scale(1.35); }
+.aircraft-glyph { width:20px;height:20px;display:grid;place-items:center; filter:drop-shadow(0 1px 4px #081016); }
+.aircraft-glyph svg { width:18px;height:18px; }
+.airport-marker { position:absolute; z-index:3; transform:translate(-50%,-50%); width:8px;height:8px; border-radius:50%; border:1.5px solid #a4d9e4; background:#173642; box-shadow:0 0 0 3px #71c8d21f; }
+.airport-label { position:absolute; z-index:3; transform:translate(7px,-50%); color:#b8cbd0; font:9px var(--app-font-mono); text-shadow:0 1px 4px #101a22,0 0 7px #101a22; white-space:nowrap; }
+.map-legend { position:absolute; left:14px;bottom:14px;z-index:5;display:flex;gap:14px;align-items:center;padding:9px 11px;border:1px solid #43545c;border-radius:5px;background:#111d25dc;color:#a8b7bd;font-size:9px;backdrop-filter:blur(5px); }
+.legend-item { display:flex;align-items:center;gap:6px; }
+.legend-dot { width:7px;height:7px;border-radius:50%;background:#68d6ef; }
+.legend-dot.amber { background:#f1bb64; }
+.map-north { position:absolute;right:16px;top:14px;z-index:3;color:#a8bdc4;font:10px var(--app-font-mono);text-align:center; }
+.map-north span { display:block;font-size:17px;color:#68d6ef; }
+.map-credit { position:absolute;right:0;bottom:0;z-index:4;background:#14212ad9;color:#a9b9bf;padding:4px 7px;font-size:8px; }
+.selected-card { position:absolute; right:15px;top:13px;z-index:5;width:218px;padding:12px;border:1px solid #3c606d;border-radius:6px;background:#13232ceF;box-shadow:0 8px 30px #07101670; }
+.selected-card-head { display:flex;justify-content:space-between;align-items:start;gap:8px; }
+.selected-card-code { font:600 12px var(--app-font-mono);color:#69d7ef; }
+.selected-card-name { color:#dce8eb;font-size:10px;margin-top:3px; }
+.selected-close { border:0;background:transparent;color:#82959d;cursor:pointer;padding:0; }
+.selected-stats { display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;padding-top:10px;border-top:1px solid #2d404a; }
+.selected-stat label { color:#82949d;display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em; }
+.selected-stat strong { display:block;color:#d9e5e8;font:10px var(--app-font-mono);margin-top:4px; }
+.bottom-strip { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid #293943;color:#82939b;font-size:9px; }
+.source-note { display:flex;gap:7px;align-items:center; }
+.source-note strong { color:#b4c1c5;font-weight:500; }
+.notice { display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:6px;background:#29251c;border:1px solid #59492d;color:#d9bd83;font-size:11px;line-height:1.5;margin-bottom:14px; }
+.notice.error { background:#2a201d;border-color:#634037;color:#e2a68b; }
+.skeleton { background:linear-gradient(90deg,#1b2a33 25%,#233640 45%,#1b2a33 65%);background-size:300% 100%;animation:shimmer 1.5s ease infinite;border-radius:4px; }
+@keyframes shimmer { to { background-position:-150% 0; } }
+.airport-layout { display:grid;grid-template-columns:minmax(310px,390px) minmax(0,1fr);gap:15px; }
+.airport-results { overflow:auto;max-height:650px; }
+.airport-row { display:block;width:100%;text-align:left;padding:14px 16px;background:transparent;border:0;border-bottom:1px solid #293943;cursor:pointer; }
+.airport-row:hover { background:#1a2a34; }
+.airport-row.active { background:#18303a;box-shadow:inset 2px 0 #5ed3ef; }
+.airport-code { color:#67d4ef;font:600 12px var(--app-font-mono); }
+.airport-name { color:#dce7ea;font-size:11px;margin-top:5px; }
+.airport-city { color:#8799a2;font-size:10px;margin-top:4px; }
+.airport-detail { min-height:480px;padding:22px; }
+.airport-detail-top { display:flex;justify-content:space-between;align-items:flex-start;gap:18px;border-bottom:1px solid #2c3b45;padding-bottom:19px; }
+.airport-large-code { color:#64d3ed;font:600 33px var(--app-font-mono);letter-spacing:-.07em; }
+.airport-detail h2 { margin:8px 0 0;font-size:20px;letter-spacing:-.04em; }
+.airport-detail-city { color:#8c9da5;margin-top:6px;font-size:12px; }
+.airport-badge { border:1px solid #344650;padding:7px 9px;border-radius:4px;color:#9bb0b8;font:10px var(--app-font-mono); }
+.detail-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:17px 25px;padding:20px 0;border-bottom:1px solid #2c3b45; }
+.detail-item label { display:block;color:#81939d;font-size:9px;text-transform:uppercase;letter-spacing:.08em; }
+.detail-item strong { display:block;color:#d4e1e4;font:11px var(--app-font-mono);margin-top:6px; }
+.nearby-head { display:flex;align-items:center;justify-content:space-between;margin-top:20px; }
+.nearby-head h3 { font-size:12px;margin:0; }
+.nearby-caption { color:#82949c;font-size:10px; }
+.nearby-list { margin-top:9px; }
+.nearby-row { display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #283841;color:#aab9bf;font-size:10px; }
+.nearby-row strong { color:#dce7ea;font:500 10px var(--app-font-mono); }
+.route-board { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px; }
+.route-direction { min-width:0;border:1px solid #293b45;border-radius:5px;background:#111c24;padding:10px; }
+.route-direction-title { display:flex;justify-content:space-between;gap:8px;color:#9aabb2;font-size:8px;font-weight:650;letter-spacing:.09em; }
+.route-direction-title span { color:#6f838c;font:8px var(--app-font-mono); }
+.route-entry { display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #26353e; }
+.route-entry:last-child { border-bottom:0;padding-bottom:2px; }
+.route-entry > div { min-width:0;display:flex;flex-direction:column;gap:4px; }
+.route-entry strong { color:#d7e3e7;font-size:9px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.route-codes { display:flex;align-items:center;gap:4px;color:#89a0a9;font:9px var(--app-font-mono); }
+.route-status { flex:none;color:#71858d;font:7px var(--app-font-mono);letter-spacing:.04em; }
+.route-status.nearby { color:#67d2eb; }
+.route-empty { color:#71858d;font-size:9px;padding:11px 0 3px; }
+.route-more { margin-top:8px;padding:5px 7px;border:1px solid #334952;border-radius:3px;background:#15242d;color:#9cbbc3;font-size:8px;cursor:pointer; }
+.route-more:hover { border-color:#478696;color:#71d5ed; }
+.route-disclaimer { color:#71838d;font-size:8px;line-height:1.5;margin-top:8px; }
 
-/**
- * Using the elevate system.
- * Automatic contrast adjustment.
- *
- * <element className="hover-elevate" />
- * <element className="active-elevate-2" />
- *
- * // Using the tailwind utility when a data attribute is "on"
- * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
- * // Or manually controlling the toggle state
- * <element className="toggle-elevate toggle-elevated" />
- *
- * Elevation systems have to handle many states.
- * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
- * - toggled or not
- * - focused or not (this is not handled with these utilities)
- *
- * Even without handling focused or not, this is six possible combinations that
- * need to be distinguished from eachother visually.
- */
-@layer utilities {
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
-  input[type='search']::-webkit-search-cancel-button {
-    @apply hidden;
-  }
-
-  /* Placeholder styling for contentEditable div */
-  [contenteditable][data-placeholder]:empty::before {
-    content: attr(data-placeholder);
-    color: hsl(var(--muted-foreground));
-    pointer-events: none;
-  }
-
-  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
-   * buttons/badges can remove the automatic brightness adjustment on interactions
-   * and program their own. */
-  .no-default-hover-elevate {
-  }
-
-  .no-default-active-elevate {
-  }
-
-  /**
-   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
-   * This way they can stack/compound. Both will overlap the parent's borders!
-   * So borders will be automatically adjusted both on toggle, and hover/active,
-   * and they will be compounded.
-   */
-  .toggle-elevate::before,
-  .toggle-elevate-2::before {
-    content: '';
-    pointer-events: none;
-    position: absolute;
-    inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
-    border-radius: inherit;
-    z-index: -1;
-    /* sits behind content but above backdrop */
-  }
-
-  .toggle-elevate.toggle-elevated::before {
-    background-color: var(--elevate-2);
-  }
-
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
-  .border.toggle-elevate::before {
-    inset: -1px;
-  }
-
-  /* Does not work on elements with overflow:hidden! */
-  .hover-elevate:not(.no-default-hover-elevate),
-  .active-elevate:not(.no-default-active-elevate),
-  .hover-elevate-2:not(.no-default-hover-elevate),
-  .active-elevate-2:not(.no-default-active-elevate) {
-    position: relative;
-    z-index: 0;
-  }
-
-  .hover-elevate:not(.no-default-hover-elevate)::after,
-  .active-elevate:not(.no-default-active-elevate)::after,
-  .hover-elevate-2:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:not(.no-default-active-elevate)::after {
-    content: '';
-    pointer-events: none;
-    position: absolute;
-    inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
-    border-radius: inherit;
-    z-index: 999;
-    /* sits in front of content */
-  }
-
-  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
-  .active-elevate:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-1);
-  }
-
-  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-2);
-  }
-
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
-    inset: -1px;
-  }
+.flight-leaflet-map { position:absolute;inset:0;width:100%;height:100%;min-height:460px;background:#12232c;z-index:1; }
+.flight-leaflet-map .leaflet-tile { filter:grayscale(.78) saturate(.56) brightness(.48) contrast(1.12); }
+.flight-leaflet-map .leaflet-control-attribution { background:#14212ae8;color:#a9b9bf;font-size:8px; }
+.flight-leaflet-map .leaflet-control-attribution a { color:#85cad8; }
+.flight-leaflet-map .leaflet-control-zoom a { background:#15242d;color:#c8d7dc;border-color:#3a4f59; }
+.flight-leaflet-map .leaflet-control-zoom a:hover { background:#20343e;color:#72d5ed; }
+.flight-leaflet-map .leaflet-popup-content-wrapper,.flight-leaflet-map .leaflet-popup-tip { background:#14232c;color:#d9e5e8;border:1px solid #3b5661;box-shadow:0 8px 25px #061016a8; }
+.flight-leaflet-map .leaflet-popup-content { margin:10px 12px; }
+.flight-leaflet-map .leaflet-popup-close-button { color:#91a6af!important; }
+.flight-leaflet-map .leaflet-tooltip.airport-map-tooltip { background:#12232cdd;border:1px solid #42616c;border-radius:3px;box-shadow:none;color:#c8d7dc;font:9px var(--app-font-mono);padding:3px 5px; }
+.flight-leaflet-map .leaflet-tooltip.airport-map-tooltip:before { border-right-color:#42616c; }
+.aircraft-leaflet-icon,.airport-leaflet-icon { background:transparent;border:0; }
+.aircraft-leaflet-icon .aircraft-glyph { width:27px;height:27px;border-radius:50%;background:#101a22b8;border:1px solid color-mix(in srgb,currentColor 65%,transparent);box-shadow:0 2px 7px #071016c9; }
+.aircraft-leaflet-icon .aircraft-glyph svg { width:17px;height:17px;filter:drop-shadow(0 1px 2px #071016); }
+.aircraft-leaflet-icon.focused .aircraft-glyph { box-shadow:0 0 0 3px #62d3ed65,0 0 15px #62d3ed91; }
+.airport-leaflet-icon .airport-marker { display:block;width:8px;height:8px;border-radius:50%;border:1.5px solid #a4d9e4;background:#173642;box-shadow:0 0 0 3px #71c8d21f; }
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large { background:rgba(47,138,157,.35); }
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div { background:#173e4abf;color:#d9f7fc;font:600 11px var(--app-font-mono); }
+.map-popup { display:flex;flex-direction:column;gap:4px;min-width:145px; }
+.map-popup strong { color:#72d7ef;font:600 11px var(--app-font-mono); }
+.map-popup span { color:#d9e5e8;font-size:10px; }
+.map-popup small { color:#91a5ac;font:9px var(--app-font-mono); }
+.info-layout { max-width:960px;margin:auto; }
+.info-hero { padding:34px 0 30px;border-bottom:1px solid #2a3944; }
+.info-hero h1 { max-width:720px;margin:9px 0 12px;font-size:35px;line-height:1.08;letter-spacing:-.055em; }
+.info-hero p { max-width:660px;color:#96a6ad;font-size:13px;line-height:1.7; }
+.info-columns { display:grid;grid-template-columns:1.1fr .9fr;gap:15px;margin-top:17px; }
+.info-card { padding:20px;background:#15212a;border:1px solid #2a3944;border-radius:8px; }
+.info-card h2 { margin:0 0 12px;font-size:13px; }
+.info-card p { color:#97a7ae;font-size:11px;line-height:1.75;margin:0; }
+.source-row { display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #2b3b45;color:#aab8bd;font-size:10px; }
+.source-row strong { color:#dbe6e8;font-weight:550; }
+.source-row span { color:#8799a1;text-align:right; }
+.data-key { display:grid;gap:10px;margin-top:13px; }
+.key-row { display:flex;gap:10px;color:#a3b2b8;font-size:10px;line-height:1.5; }
+.key-mark { flex:0 0 17px;height:17px;border-radius:4px;background:#21343c;color:#6dd3eb;display:grid;place-items:center;font:9px var(--app-font-mono); }
+.page-footer { max-width:1600px;margin:0 auto;padding:0 28px 20px;color:#647781;font-size:9px;display:flex;justify-content:space-between; }
+.mobile-tabs { display:none; }
+@media (max-width:1050px) {
+  .workspace { grid-template-columns:minmax(300px,350px) minmax(0,1fr); }
+  .page { padding-left:20px;padding-right:20px; }
+  .topbar { padding:0 20px; }
+  .brand { min-width:205px; }
+  .map-canvas { min-height:430px; }
 }
+@media (max-width:767px) {
+  .topbar { height:58px;padding:0 14px;gap:10px; }
+  .brand { min-width:0; }
+  .brand-sub,.top-clock,.nav-links { display:none; }
+  .brand-title { font-size:11px; }
+  .topbar-right { gap:0; }
+  .connection { font-size:10px; }
+  .page { padding:18px 12px 24px; }
+  .page-head { align-items:flex-start;flex-direction:column;gap:10px; }
+  .page-title { font-size:22px; }
+  .headline-side { width:100%;justify-content:space-between; }
+  .summary-strip { grid-template-columns:1fr 1fr; }
+  .summary-cell { padding:11px 12px; }
+  .summary-cell:nth-child(2) { border-right:0; }
+  .summary-cell:nth-child(-n+2) { border-bottom:1px solid #2a3944; }
+  .summary-value { font-size:18px; }
+  .workspace { display:flex;flex-direction:column;gap:11px;min-height:0; }
+  .map-panel { order:0;min-height:390px; }
+  .map-canvas { min-height:340px; }
+  .flight-panel { order:1;min-height:0; }
+  .flight-list { max-height:370px; }
+  .map-toolbar { padding:10px; }
+  .map-area-label { display:none; }
+  .selected-card { width:182px;right:8px;top:8px;padding:9px; }
+  .map-legend { left:8px;bottom:8px;padding:7px 8px;gap:9px;font-size:8px; }
+  .airport-layout { display:flex;flex-direction:column; }
+  .airport-results { max-height:280px; }
+  .airport-detail { padding:16px; }
+  .detail-grid { grid-template-columns:1fr 1fr;gap:15px; }
+  .nearby-row { grid-template-columns:1fr 1fr;gap:6px;padding:11px 0; }
+  .route-board { grid-template-columns:1fr; }
+  .info-hero { padding:20px 0 22px; }
+  .info-hero h1 { font-size:30px; }
+  .info-columns { grid-template-columns:1fr; }
+  .page-footer { padding:0 12px 18px; }
+  .mobile-tabs { position:sticky;bottom:0;z-index:8;display:flex;background:#111b24;border-top:1px solid #2b3b45;padding:7px 10px calc(7px + env(safe-area-inset-bottom));justify-content:space-around; }
+  .mobile-tab { display:flex;flex-direction:column;gap:4px;align-items:center;color:#84969e;text-decoration:none;font-size:9px;padding:4px 13px; }
+  .mobile-tab.active { color:#64d3ed; }
+}
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important; } }

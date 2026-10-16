@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Live South African flight and airport data
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: flights
+    description: Live aircraft data for South African airspace
+  - name: airports
+    description: South African airport reference data
 paths:
   /healthz:
     get:
@@ -24,6 +28,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /flights:
+    get:
+      operationId: getFlights
+      tags: [flights]
+      summary: Get current aircraft positions
+      responses:
+        "200":
+          description: Current aircraft positions and source freshness
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightsResponse"
+        "503":
+          description: Live data is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /flights/summary:
+    get:
+      operationId: getFlightSummary
+      tags: [flights]
+      summary: Get current airspace activity totals
+      responses:
+        "200":
+          description: Flight counts and source freshness
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightSummary"
+  /airports:
+    get:
+      operationId: getAirports
+      tags: [airports]
+      summary: List South African airports
+      responses:
+        "200":
+          description: Matching airports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Airport"
+  /airport-routes:
+    get:
+      operationId: getAirportRoutes
+      tags: [airports]
+      summary: List reference routes serving South African airports
+      responses:
+        "200":
+          description: Known route records for South African airport codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AirportRoute"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +95,154 @@ components:
           type: string
       required:
         - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    Flight:
+      type: object
+      properties:
+        icao24:
+          type: string
+        callsign:
+          type: [string, "null"]
+        originCountry:
+          type: [string, "null"]
+        longitude:
+          type: [number, "null"]
+        latitude:
+          type: [number, "null"]
+        baroAltitude:
+          type: [number, "null"]
+        geoAltitude:
+          type: [number, "null"]
+        onGround:
+          type: boolean
+        velocity:
+          type: [number, "null"]
+        trueTrack:
+          type: [number, "null"]
+        verticalRate:
+          type: [number, "null"]
+        squawk:
+          type: [string, "null"]
+        lastContact:
+          type: [integer, "null"]
+        category:
+          type: [integer, "null"]
+        airlineName:
+          type: [string, "null"]
+      required:
+        - icao24
+        - callsign
+        - originCountry
+        - longitude
+        - latitude
+        - baroAltitude
+        - geoAltitude
+        - onGround
+        - velocity
+        - trueTrack
+        - verticalRate
+        - squawk
+        - lastContact
+        - category
+        - airlineName
+    FlightsResponse:
+      type: object
+      properties:
+        flights:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flight"
+        fetchedAt:
+          type: [string, "null"]
+          format: date-time
+        stale:
+          type: boolean
+        warning:
+          type: [string, "null"]
+      required: [flights, fetchedAt, stale, warning]
+    FlightSummary:
+      type: object
+      properties:
+        totalFlights:
+          type: integer
+        airborne:
+          type: integer
+        onGround:
+          type: integer
+        fetchedAt:
+          type: [string, "null"]
+          format: date-time
+        stale:
+          type: boolean
+      required: [totalFlights, airborne, onGround, fetchedAt, stale]
+    Airport:
+      type: object
+      properties:
+        airportId:
+          type: integer
+        name:
+          type: string
+        city:
+          type: [string, "null"]
+        country:
+          type: string
+        iataCode:
+          type: [string, "null"]
+        icaoCode:
+          type: [string, "null"]
+        latitude:
+          type: number
+        longitude:
+          type: number
+        altitude:
+          type: [integer, "null"]
+        timezone:
+          type: [number, "null"]
+        tzDatabase:
+          type: [string, "null"]
+        type:
+          type: [string, "null"]
+      required:
+        - airportId
+        - name
+        - city
+        - country
+        - iataCode
+        - icaoCode
+        - latitude
+        - longitude
+        - altitude
+        - timezone
+        - tzDatabase
+        - type
+    AirportRoute:
+      type: object
+      properties:
+        routeKey:
+          type: string
+        airlineCode:
+          type: string
+        airlineName:
+          type: [string, "null"]
+        sourceAirportCode:
+          type: string
+        destinationAirportCode:
+          type: string
+        stops:
+          type: integer
+        equipment:
+          type: [string, "null"]
+      required:
+        - routeKey
+        - airlineCode
+        - airlineName
+        - sourceAirportCode
+        - destinationAirportCode
+        - stops
+        - equipment
 

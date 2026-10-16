@@ -1,0 +1,7 @@
+project_id = "sa-flight-tracker"
+
+[functions.refresh-flights]
+verify_jwt = true
+
+[functions.cleanup-flights]
+verify_jwt = true

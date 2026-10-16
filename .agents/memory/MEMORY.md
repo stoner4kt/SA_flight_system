@@ -1,0 +1,1 @@
+- [Orval parameter collisions](orval-parameter-collisions.md) — generated client and Zod parameter types can collide; verify codegen with workspace typechecking.
