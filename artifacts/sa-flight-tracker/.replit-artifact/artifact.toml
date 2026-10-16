@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SA Flight Tracker"
+description = "A live South African airspace tracker for browsing aircraft positions, searching airports, and inspecting flight details."
+version = "1.0.0"
+id = "artifacts/sa-flight-tracker"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25896
+
+[services.development]
+run = "pnpm --filter @workspace/sa-flight-tracker run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sa-flight-tracker", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/sa-flight-tracker/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25896"
+BASE_PATH = "/"
