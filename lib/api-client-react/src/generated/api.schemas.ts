@@ -11,6 +11,8 @@ export interface HealthStatus {
 
 export interface ErrorResponse {
   error: string;
+  /** @nullable */
+  message?: string | null;
 }
 
 export interface Flight {
@@ -95,4 +97,343 @@ export interface AirportRoute {
   /** @nullable */
   equipment: string | null;
 }
+
+export type ActivityEventKind = typeof ActivityEventKind[keyof typeof ActivityEventKind];
+
+
+export const ActivityEventKind = {
+  scheduled: 'scheduled',
+  en_route: 'en_route',
+  arrived: 'arrived',
+  passenger_onboard: 'passenger_onboard',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface ActivityEvent {
+  id: string;
+  occurredAt: string;
+  kind: ActivityEventKind;
+  title: string;
+  detail: string;
+  /** @nullable */
+  itineraryId: string | null;
+  /** @nullable */
+  itineraryReference: string | null;
+}
+
+export interface DashboardSummary {
+  totalItineraries: number;
+  activeAssignments: number;
+  availableVehicles: number;
+  pendingDsrRequests: number;
+  recentActivity: ActivityEvent[];
+}
+
+export interface FlightSegment {
+  /** @nullable */
+  flight_number: string | null;
+  /** @nullable */
+  airline: string | null;
+  origin: string;
+  destination: string;
+  departure_time: string;
+  arrival_time: string;
+  /** @nullable */
+  terminal: string | null;
+}
+
+export interface ItinerarySummary {
+  id: string;
+  itinerary_ref: string;
+  client_name: string;
+  client_email: string;
+  status: string;
+  /** @nullable */
+  departure_at: string | null;
+  /** @nullable */
+  arrival_at: string | null;
+  assignment_count: number;
+  created_at: string;
+}
+
+export type ItineraryDetailFlightData = {
+  segments: FlightSegment[];
+};
+
+export type FleetAssignmentTrackingState = typeof FleetAssignmentTrackingState[keyof typeof FleetAssignmentTrackingState];
+
+
+export const FleetAssignmentTrackingState = {
+  scheduled: 'scheduled',
+  en_route: 'en_route',
+  arrived: 'arrived',
+  passenger_onboard: 'passenger_onboard',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface FleetAssignment {
+  id: string;
+  itinerary_id: string;
+  vehicle_id: string;
+  vehicle_registration: string;
+  driver_name: string;
+  /** @nullable */
+  driver_contact: string | null;
+  pickup_at: string;
+  dropoff_at: string;
+  pickup_address: string;
+  dropoff_address: string;
+  tracking_state: FleetAssignmentTrackingState;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ItineraryDetail = ItinerarySummary & {
+  flight_data: ItineraryDetailFlightData;
+  fleet_assignments: FleetAssignment[];
+};
+
+export type ItineraryInputStatus = typeof ItineraryInputStatus[keyof typeof ItineraryInputStatus];
+
+
+export const ItineraryInputStatus = {
+  pending: 'pending',
+  confirmed: 'confirmed',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface ItineraryInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  client_name: string;
+  /** @maxLength 320 */
+  client_email: string;
+  /**
+     * @maxLength 64
+     * @nullable
+     */
+  client_phone?: string | null;
+  /**
+     * @maxLength 64
+     * @nullable
+     */
+  passport_number?: string | null;
+  /**
+     * @maxLength 32
+     * @nullable
+     */
+  sa_id_number?: string | null;
+  status?: ItineraryInputStatus;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  flight_segments: FlightSegment[];
+}
+
+export interface FleetVehicle {
+  id: string;
+  registration: string;
+  make_model: string;
+  capacity: number;
+  active: boolean;
+}
+
+export interface FleetAvailability {
+  vehicle: FleetVehicle;
+  available: boolean;
+  conflicts: FleetAssignment[];
+}
+
+export interface AssignmentInput {
+  itinerary_id: string;
+  vehicle_id: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  driver_name: string;
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  driver_contact: string;
+  pickup_at: string;
+  dropoff_at: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  pickup_address: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  dropoff_address: string;
+  /** @maxLength 320 */
+  client_email: string;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  notes?: string | null;
+}
+
+export interface AssignmentCreated {
+  assignment: FleetAssignment;
+  notification_sent: boolean;
+  /** @nullable */
+  notification_message: string | null;
+}
+
+export type TrackingStateUpdateTrackingState = typeof TrackingStateUpdateTrackingState[keyof typeof TrackingStateUpdateTrackingState];
+
+
+export const TrackingStateUpdateTrackingState = {
+  scheduled: 'scheduled',
+  en_route: 'en_route',
+  arrived: 'arrived',
+  passenger_onboard: 'passenger_onboard',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface TrackingStateUpdate {
+  tracking_state: TrackingStateUpdateTrackingState;
+}
+
+export type DsrRequestRequestType = typeof DsrRequestRequestType[keyof typeof DsrRequestRequestType];
+
+
+export const DsrRequestRequestType = {
+  access: 'access',
+  erasure: 'erasure',
+  correction: 'correction',
+  objection: 'objection',
+} as const;
+
+export type DsrRequestStatus = typeof DsrRequestStatus[keyof typeof DsrRequestStatus];
+
+
+export const DsrRequestStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  processing: 'processing',
+  completed: 'completed',
+  rejected: 'rejected',
+} as const;
+
+export interface DsrRequest {
+  id: string;
+  subject_email: string;
+  /** @nullable */
+  subject_name: string | null;
+  request_type: DsrRequestRequestType;
+  status: DsrRequestStatus;
+  created_at: string;
+  /** @nullable */
+  verified_at: string | null;
+  /** @nullable */
+  completed_at: string | null;
+  /** @nullable */
+  notes: string | null;
+}
+
+export interface DsrRequestPage {
+  items: DsrRequest[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export type DsrRequestInputRequestType = typeof DsrRequestInputRequestType[keyof typeof DsrRequestInputRequestType];
+
+
+export const DsrRequestInputRequestType = {
+  access: 'access',
+  erasure: 'erasure',
+  correction: 'correction',
+  objection: 'objection',
+} as const;
+
+export interface DsrRequestInput {
+  /** @maxLength 320 */
+  subject_email: string;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  subject_name?: string | null;
+  request_type: DsrRequestInputRequestType;
+}
+
+export interface DsrRequestAccepted {
+  ref: string;
+  verification_email_sent: boolean;
+  message: string;
+}
+
+export interface DsrVerification {
+  request_id: string;
+  verified: boolean;
+  message: string;
+}
+
+export type DsrRequestUpdateStatus = typeof DsrRequestUpdateStatus[keyof typeof DsrRequestUpdateStatus];
+
+
+export const DsrRequestUpdateStatus = {
+  verified: 'verified',
+  processing: 'processing',
+  completed: 'completed',
+  rejected: 'rejected',
+} as const;
+
+export interface DsrRequestUpdate {
+  status: DsrRequestUpdateStatus;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  notes?: string | null;
+}
+
+export interface DsrRequestUpdateResponse {
+  success: boolean;
+  request: DsrRequest;
+}
+
+export type GetFleetAvailabilityParams = {
+from: string;
+to: string;
+};
+
+export type ListDsrRequestsParams = {
+status?: ListDsrRequestsStatus;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ListDsrRequestsStatus = typeof ListDsrRequestsStatus[keyof typeof ListDsrRequestsStatus];
+
+
+export const ListDsrRequestsStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  processing: 'processing',
+  completed: 'completed',
+  rejected: 'rejected',
+} as const;
 

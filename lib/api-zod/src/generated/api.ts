@@ -91,3 +91,385 @@ export const GetAirportRoutesResponseItem = zod.object({
 export const GetAirportRoutesResponse = zod.array(GetAirportRoutesResponseItem)
 
 
+/**
+ * @summary Get combined travel operations summary
+ */
+export const GetDashboardSummaryResponse = zod.object({
+  "totalItineraries": zod.number().int(),
+  "activeAssignments": zod.number().int(),
+  "availableVehicles": zod.number().int(),
+  "pendingDsrRequests": zod.number().int(),
+  "recentActivity": zod.array(zod.object({
+  "id": zod.string(),
+  "occurredAt": zod.coerce.date(),
+  "kind": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "title": zod.string(),
+  "detail": zod.string(),
+  "itineraryId": zod.string().uuid().nullable(),
+  "itineraryReference": zod.string().nullable()
+}))
+})
+
+
+/**
+ * @summary List recent itineraries
+ */
+export const ListItinerariesResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_ref": zod.string(),
+  "client_name": zod.string(),
+  "client_email": zod.string().email(),
+  "status": zod.string(),
+  "departure_at": zod.coerce.date().nullable(),
+  "arrival_at": zod.coerce.date().nullable(),
+  "assignment_count": zod.number().int(),
+  "created_at": zod.coerce.date()
+})
+export const ListItinerariesResponse = zod.array(ListItinerariesResponseItem)
+
+
+/**
+ * @summary Record a client flight booking
+ */
+export const createItineraryBodyClientNameMax = 160;
+
+export const createItineraryBodyClientEmailMax = 320;
+
+export const createItineraryBodyClientPhoneMax = 64;
+
+export const createItineraryBodyPassportNumberMax = 64;
+
+export const createItineraryBodySaIdNumberMax = 32;
+
+export const createItineraryBodyFlightSegmentsMax = 12;
+
+
+
+export const CreateItineraryBody = zod.object({
+  "client_name": zod.string().min(1).max(createItineraryBodyClientNameMax),
+  "client_email": zod.string().email().max(createItineraryBodyClientEmailMax),
+  "client_phone": zod.string().max(createItineraryBodyClientPhoneMax).nullish(),
+  "passport_number": zod.string().max(createItineraryBodyPassportNumberMax).nullish(),
+  "sa_id_number": zod.string().max(createItineraryBodySaIdNumberMax).nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'completed', 'cancelled']).optional(),
+  "flight_segments": zod.array(zod.object({
+  "flight_number": zod.string().nullable(),
+  "airline": zod.string().nullable(),
+  "origin": zod.string(),
+  "destination": zod.string(),
+  "departure_time": zod.coerce.date(),
+  "arrival_time": zod.coerce.date(),
+  "terminal": zod.string().nullable()
+})).min(1).max(createItineraryBodyFlightSegmentsMax)
+})
+
+export const CreateItineraryResponse = zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_ref": zod.string(),
+  "client_name": zod.string(),
+  "client_email": zod.string().email(),
+  "status": zod.string(),
+  "departure_at": zod.coerce.date().nullable(),
+  "arrival_at": zod.coerce.date().nullable(),
+  "assignment_count": zod.number().int(),
+  "created_at": zod.coerce.date()
+}).and(zod.object({
+  "flight_data": zod.object({
+  "segments": zod.array(zod.object({
+  "flight_number": zod.string().nullable(),
+  "airline": zod.string().nullable(),
+  "origin": zod.string(),
+  "destination": zod.string(),
+  "departure_time": zod.coerce.date(),
+  "arrival_time": zod.coerce.date(),
+  "terminal": zod.string().nullable()
+}))
+}),
+  "fleet_assignments": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "vehicle_registration": zod.string(),
+  "driver_name": zod.string(),
+  "driver_contact": zod.string().nullable(),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string(),
+  "dropoff_address": zod.string(),
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+}))
+}))
+
+
+/**
+ * @summary Get an itinerary and its fleet assignments
+ */
+export const GetItineraryParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetItineraryResponse = zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_ref": zod.string(),
+  "client_name": zod.string(),
+  "client_email": zod.string().email(),
+  "status": zod.string(),
+  "departure_at": zod.coerce.date().nullable(),
+  "arrival_at": zod.coerce.date().nullable(),
+  "assignment_count": zod.number().int(),
+  "created_at": zod.coerce.date()
+}).and(zod.object({
+  "flight_data": zod.object({
+  "segments": zod.array(zod.object({
+  "flight_number": zod.string().nullable(),
+  "airline": zod.string().nullable(),
+  "origin": zod.string(),
+  "destination": zod.string(),
+  "departure_time": zod.coerce.date(),
+  "arrival_time": zod.coerce.date(),
+  "terminal": zod.string().nullable()
+}))
+}),
+  "fleet_assignments": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "vehicle_registration": zod.string(),
+  "driver_name": zod.string(),
+  "driver_contact": zod.string().nullable(),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string(),
+  "dropoff_address": zod.string(),
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+}))
+}))
+
+
+/**
+ * @summary Check fleet availability for a time range
+ */
+export const GetFleetAvailabilityQueryParams = zod.object({
+  "from": zod.date(),
+  "to": zod.date()
+})
+
+export const GetFleetAvailabilityResponseItem = zod.object({
+  "vehicle": zod.object({
+  "id": zod.string().uuid(),
+  "registration": zod.string(),
+  "make_model": zod.string(),
+  "capacity": zod.number().int(),
+  "active": zod.boolean()
+}),
+  "available": zod.boolean(),
+  "conflicts": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "vehicle_registration": zod.string(),
+  "driver_name": zod.string(),
+  "driver_contact": zod.string().nullable(),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string(),
+  "dropoff_address": zod.string(),
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+}))
+})
+export const GetFleetAvailabilityResponse = zod.array(GetFleetAvailabilityResponseItem)
+
+
+/**
+ * @summary Assign a vehicle and driver to an itinerary
+ */
+export const createFleetAssignmentBodyDriverNameMax = 160;
+
+export const createFleetAssignmentBodyDriverContactMax = 64;
+
+export const createFleetAssignmentBodyPickupAddressMax = 500;
+
+export const createFleetAssignmentBodyDropoffAddressMax = 500;
+
+export const createFleetAssignmentBodyClientEmailMax = 320;
+
+export const createFleetAssignmentBodyNotesMax = 2000;
+
+
+
+export const CreateFleetAssignmentBody = zod.object({
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "driver_name": zod.string().min(1).max(createFleetAssignmentBodyDriverNameMax),
+  "driver_contact": zod.string().min(1).max(createFleetAssignmentBodyDriverContactMax),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string().min(1).max(createFleetAssignmentBodyPickupAddressMax),
+  "dropoff_address": zod.string().min(1).max(createFleetAssignmentBodyDropoffAddressMax),
+  "client_email": zod.string().email().max(createFleetAssignmentBodyClientEmailMax),
+  "notes": zod.string().max(createFleetAssignmentBodyNotesMax).nullish()
+})
+
+export const CreateFleetAssignmentResponse = zod.object({
+  "assignment": zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "vehicle_registration": zod.string(),
+  "driver_name": zod.string(),
+  "driver_contact": zod.string().nullable(),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string(),
+  "dropoff_address": zod.string(),
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+}),
+  "notification_sent": zod.boolean(),
+  "notification_message": zod.string().nullable()
+})
+
+
+/**
+ * @summary Update the live state of a fleet assignment
+ */
+export const UpdateFleetTrackingStateParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const UpdateFleetTrackingStateBody = zod.object({
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled'])
+})
+
+export const UpdateFleetTrackingStateResponse = zod.object({
+  "id": zod.string().uuid(),
+  "itinerary_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "vehicle_registration": zod.string(),
+  "driver_name": zod.string(),
+  "driver_contact": zod.string().nullable(),
+  "pickup_at": zod.coerce.date(),
+  "dropoff_at": zod.coerce.date(),
+  "pickup_address": zod.string(),
+  "dropoff_address": zod.string(),
+  "tracking_state": zod.enum(['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled']),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+
+
+/**
+ * Public endpoint protected by per-IP rate limiting; sends a verification email.
+ * @summary Submit a data-subject request
+ */
+export const createDsrRequestBodySubjectEmailMax = 320;
+
+export const createDsrRequestBodySubjectNameMax = 160;
+
+
+
+export const CreateDsrRequestBody = zod.object({
+  "subject_email": zod.string().email().max(createDsrRequestBodySubjectEmailMax),
+  "subject_name": zod.string().max(createDsrRequestBodySubjectNameMax).nullish(),
+  "request_type": zod.enum(['access', 'erasure', 'correction', 'objection'])
+})
+
+export const CreateDsrRequestResponse = zod.object({
+  "ref": zod.string().uuid(),
+  "verification_email_sent": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List data-subject requests for an authenticated agent
+ */
+export const listDsrRequestsQueryPageDefault = 1;
+
+export const listDsrRequestsQueryLimitDefault = 20;
+export const listDsrRequestsQueryLimitMax = 100;
+
+
+
+export const ListDsrRequestsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'verified', 'processing', 'completed', 'rejected']).optional(),
+  "page": zod.coerce.number().int().min(1).default(listDsrRequestsQueryPageDefault),
+  "limit": zod.coerce.number().int().min(1).max(listDsrRequestsQueryLimitMax).default(listDsrRequestsQueryLimitDefault)
+})
+
+export const ListDsrRequestsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "subject_email": zod.string().email(),
+  "subject_name": zod.string().nullable(),
+  "request_type": zod.enum(['access', 'erasure', 'correction', 'objection']),
+  "status": zod.enum(['pending', 'verified', 'processing', 'completed', 'rejected']),
+  "created_at": zod.coerce.date(),
+  "verified_at": zod.coerce.date().nullable(),
+  "completed_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable()
+})),
+  "page": zod.number().int(),
+  "limit": zod.number().int(),
+  "total": zod.number().int()
+})
+
+
+/**
+ * @summary Verify a data-subject request email token
+ */
+export const verifyDsrTokenPathTokenMin = 32;
+export const verifyDsrTokenPathTokenMax = 256;
+
+
+
+export const VerifyDsrTokenParams = zod.object({
+  "token": zod.coerce.string().min(verifyDsrTokenPathTokenMin).max(verifyDsrTokenPathTokenMax)
+})
+
+export const VerifyDsrTokenResponse = zod.object({
+  "request_id": zod.string().uuid(),
+  "verified": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Update an authenticated agent's data-subject request
+ */
+export const UpdateDsrRequestParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const updateDsrRequestBodyNotesMax = 2000;
+
+
+
+export const UpdateDsrRequestBody = zod.object({
+  "status": zod.enum(['verified', 'processing', 'completed', 'rejected']),
+  "notes": zod.string().max(updateDsrRequestBodyNotesMax).nullish()
+})
+
+export const UpdateDsrRequestResponse = zod.object({
+  "success": zod.boolean(),
+  "request": zod.object({
+  "id": zod.string().uuid(),
+  "subject_email": zod.string().email(),
+  "subject_name": zod.string().nullable(),
+  "request_type": zod.enum(['access', 'erasure', 'correction', 'objection']),
+  "status": zod.enum(['pending', 'verified', 'processing', 'completed', 'rejected']),
+  "created_at": zod.coerce.date(),
+  "verified_at": zod.coerce.date().nullable(),
+  "completed_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable()
+})
+})
+
+

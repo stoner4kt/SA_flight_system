@@ -8,7 +8,7 @@ import {
   Activity, AlertTriangle, ArrowUpRight, Compass, Crosshair, Info, MapPin,
   Navigation, Plane, Radio, Search, ShieldCheck, Signal, X
 } from 'lucide-react';
-import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Link, Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import {
   MapContainer, Marker, Popup, TileLayer, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
@@ -22,6 +22,11 @@ import {
 } from '@workspace/api-client-react';
 import type { Airport, AirportRoute, Flight } from '@workspace/api-client-react';
 import NotFound from '@/pages/not-found';
+import { AuthProvider, useAuth } from '@/auth';
+import {
+  DashboardPage, ItineraryPage, NewBookingPage, PrivacyDeskPage, PublicPrivacyRequestPage,
+  SignInPage, VerifyPrivacyPage, WorkspaceShell
+} from '@/agency';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } }
@@ -52,44 +57,6 @@ function formatTime(value: string | null | undefined) {
   if (!value) return '—';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Johannesburg' });
-}
-
-function Shell({ children }: { children: ReactNode }) {
-  const [path] = useLocation();
-  const health = useHealthCheck({ query: { ...usePolling, queryKey: ['/api/healthz'] } });
-  const healthStatus = health.data?.status?.toLowerCase();
-  const offline = health.isError || (healthStatus ? ['error', 'unhealthy', 'down'].includes(healthStatus) : false);
-  return (
-    <div className="app-shell">
-      <header className="topbar">
-        <Link href="/" className="brand" data-testid="link-brand">
-          <span className="brand-mark"><Plane size={19} strokeWidth={2.5} /></span>
-          <span><span className="brand-title">SA FLIGHT TRACKER</span><span className="brand-sub">SOUTHERN AFRICAN AIRSPACE</span></span>
-        </Link>
-        <nav className="nav-links" aria-label="Main navigation">
-          <Link href="/" className={`nav-link ${path === '/' ? 'active' : ''}`} data-testid="link-live-map"><Activity size={14} /> Live map</Link>
-          <Link href="/airports" className={`nav-link ${path === '/airports' ? 'active' : ''}`} data-testid="link-airports"><MapPin size={14} /> Airports</Link>
-          <Link href="/about" className={`nav-link ${path === '/about' ? 'active' : ''}`} data-testid="link-about"><Info size={14} /> About</Link>
-        </nav>
-        <div className="topbar-right">
-          <span className={`connection ${offline ? 'offline' : ''}`} data-testid="status-api-connection">
-            <i className="live-dot" />{offline ? 'API connection lost' : 'Data link active'}
-          </span>
-          <span className="top-clock mono">JNB · UTC+2</span>
-        </div>
-      </header>
-      <main>{children}</main>
-      <footer className="page-footer">
-        <span>SA AIRSPACE MONITOR <span className="mono">/</span> Positions are reports, not clearances.</span>
-        <span className="mono">OPEN DATA · OPEN SKY</span>
-      </footer>
-      <nav className="mobile-tabs" aria-label="Mobile navigation">
-        <Link href="/" className={`mobile-tab ${path === '/' ? 'active' : ''}`} data-testid="mobile-link-map"><Activity size={16} />Map</Link>
-        <Link href="/airports" className={`mobile-tab ${path === '/airports' ? 'active' : ''}`} data-testid="mobile-link-airports"><MapPin size={16} />Airports</Link>
-        <Link href="/about" className={`mobile-tab ${path === '/about' ? 'active' : ''}`} data-testid="mobile-link-about"><Info size={16} />About</Link>
-      </nav>
-    </div>
-  );
 }
 
 function PageHead({ eyebrow, title, subtitle, right }: { eyebrow: string; title: string; subtitle: string; right?: ReactNode }) {
@@ -412,12 +379,33 @@ function About() {
   </div>;
 }
 
-function Router() {
-  return <ErrorBoundary resetKey={useLocation()[0]}><Switch><Route path="/" component={Home} /><Route path="/airports" component={Airports} /><Route path="/about" component={About} /><Route component={NotFound} /></Switch></ErrorBoundary>;
+function LoadingSession() {
+  return <div className="session-loading"><span className="session-loading-mark"><Plane size={18} /></span><div className="skeleton" style={{ width: 180, height: 10 }} /><div className="skeleton" style={{ width: 260, height: 7 }} /></div>;
+}
+
+function SessionRouter() {
+  const auth = useAuth();
+  const [path] = useLocation();
+  if (path === '/privacy/request') return <ErrorBoundary resetKey={path}><PublicPrivacyRequestPage /></ErrorBoundary>;
+  if (path.startsWith('/privacy/verify/')) return <ErrorBoundary resetKey={path}><VerifyPrivacyPage /></ErrorBoundary>;
+  if (auth.loading) return <LoadingSession />;
+  if (!auth.user) return path === '/' ? <SignInPage /> : <Redirect to="/" />;
+  if (path === '/') return <Redirect to="/dashboard" />;
+  const flightPage = ['/flights', '/airports', '/about'].includes(path);
+  return <ErrorBoundary resetKey={path}><WorkspaceShell flightPage={flightPage}><Switch>
+    <Route path="/dashboard" component={DashboardPage} />
+    <Route path="/dashboard/bookings/new" component={NewBookingPage} />
+    <Route path="/dashboard/itinerary/:id" component={ItineraryPage} />
+    <Route path="/dashboard/privacy" component={PrivacyDeskPage} />
+    <Route path="/flights" component={Home} />
+    <Route path="/airports" component={Airports} />
+    <Route path="/about" component={About} />
+    <Route component={NotFound} />
+  </Switch></WorkspaceShell></ErrorBoundary>;
 }
 
 function App() {
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><Shell><Router /></Shell></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><TooltipProvider><AuthProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><SessionRouter /></WouterRouter></AuthProvider><Toaster /></TooltipProvider></QueryClientProvider>;
 }
 
 export default App;

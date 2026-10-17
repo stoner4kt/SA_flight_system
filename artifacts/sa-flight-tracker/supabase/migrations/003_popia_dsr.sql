@@ -1,0 +1,66 @@
+-- Data-subject request workflow.
+-- This is 003 because 001_initial_schema.sql already belongs to the flight app
+-- and 002_fleet_and_popia.sql supplies the CRM tables and shared trigger.
+
+CREATE TABLE IF NOT EXISTS public.popia_dsr_requests (
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+  request_type TEXT NOT NULL
+    CHECK (request_type IN ('access', 'erasure', 'correction', 'objection')),
+  subject_email TEXT NOT NULL,
+  subject_name TEXT,
+  verify_token TEXT NOT NULL,
+  verified_at TIMESTAMPTZ,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'verified', 'processing', 'completed', 'rejected')),
+  completed_at TIMESTAMPTZ,
+  completed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_popia_dsr_token
+  ON public.popia_dsr_requests (verify_token);
+CREATE INDEX IF NOT EXISTS idx_popia_dsr_email
+  ON public.popia_dsr_requests (lower(subject_email));
+CREATE INDEX IF NOT EXISTS idx_popia_dsr_status
+  ON public.popia_dsr_requests (status, created_at DESC);
+
+ALTER TABLE public.popia_dsr_requests ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "authenticated_agents_manage_dsr" ON public.popia_dsr_requests;
+CREATE POLICY "authenticated_agents_manage_dsr"
+  ON public.popia_dsr_requests FOR ALL TO authenticated
+  USING (TRUE) WITH CHECK (TRUE);
+
+DROP POLICY IF EXISTS "block_anon_dsr" ON public.popia_dsr_requests;
+CREATE POLICY "block_anon_dsr"
+  ON public.popia_dsr_requests FOR ALL TO anon
+  USING (FALSE) WITH CHECK (FALSE);
+
+DROP TRIGGER IF EXISTS trg_popia_dsr_updated_at ON public.popia_dsr_requests;
+CREATE TRIGGER trg_popia_dsr_updated_at
+  BEFORE UPDATE ON public.popia_dsr_requests
+  FOR EACH ROW EXECUTE FUNCTION public.fn_touch_updated_at();
+
+ALTER TABLE public.itineraries ADD COLUMN IF NOT EXISTS client_email TEXT;
+CREATE INDEX IF NOT EXISTS idx_itineraries_client_email
+  ON public.itineraries (lower(client_email));
+
+REVOKE ALL ON public.popia_dsr_requests FROM anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.popia_dsr_requests TO authenticated;
+GRANT ALL ON public.popia_dsr_requests TO service_role;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime')
+     AND NOT EXISTS (
+       SELECT 1 FROM pg_publication_tables
+       WHERE pubname = 'supabase_realtime'
+         AND schemaname = 'public'
+         AND tablename = 'popia_dsr_requests'
+     ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.popia_dsr_requests;
+  END IF;
+END;
+$$;
