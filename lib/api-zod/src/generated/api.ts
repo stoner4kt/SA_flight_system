@@ -425,13 +425,15 @@ export const ListDsrRequestsResponse = zod.object({
 /**
  * @summary Verify a data-subject request email token
  */
-export const verifyDsrTokenPathTokenMin = 32;
-export const verifyDsrTokenPathTokenMax = 256;
+export const verifyDsrTokenPathTokenMin = 64;
+export const verifyDsrTokenPathTokenMax = 64;
 
+
+export const verifyDsrTokenPathTokenRegExp = new RegExp('^[a-fA-F0-9]{64}$');
 
 
 export const VerifyDsrTokenParams = zod.object({
-  "token": zod.coerce.string().min(verifyDsrTokenPathTokenMin).max(verifyDsrTokenPathTokenMax)
+  "token": zod.coerce.string().min(verifyDsrTokenPathTokenMin).max(verifyDsrTokenPathTokenMax).regex(verifyDsrTokenPathTokenRegExp)
 })
 
 export const VerifyDsrTokenResponse = zod.object({

@@ -1,1 +1,2 @@
 - [Orval parameter collisions](orval-parameter-collisions.md) — generated client and Zod parameter types can collide; verify codegen with workspace typechecking.
+- [SA Travel agency workflow](sa-travel-agency-workflow.md) — the agency handles customer flight bookings and ground transfers together with live flight monitoring in one staff workspace.

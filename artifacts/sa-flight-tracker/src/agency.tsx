@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation, useParams } from 'wouter';
 import {
@@ -12,11 +12,12 @@ import {
   useGetDashboardSummary, useGetFleetAvailability, useGetFlightSummary, useGetFlights, useGetItinerary, useListDsrRequests,
   useListItineraries, useUpdateDsrRequest, useUpdateFleetTrackingState, useVerifyDsrToken
 } from '@workspace/api-client-react';
+import { VehicleTimelineGrid } from '@/components/VehicleTimelineGrid';
 import type {
   AssignmentInput, DsrRequest, DsrRequestInputRequestType, DsrRequestUpdateStatus,
   FlightSegment, FleetAssignmentTrackingState, ItineraryInput, ListDsrRequestsStatus
 } from '@workspace/api-client-react';
-import { useAuth } from '@/auth';
+import { supabase, useAuth } from '@/auth';
 
 const trackingStates: FleetAssignmentTrackingState[] = ['scheduled', 'en_route', 'arrived', 'passenger_onboard', 'completed', 'cancelled'];
 const dsrStatuses: DsrRequestUpdateStatus[] = ['verified', 'processing', 'completed', 'rejected'];
@@ -24,6 +25,41 @@ const dateLabel = (value?: string | null) => value ? new Date(value).toLocaleStr
 const compactDate = (value?: string | null) => value ? new Date(value).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' }) : '—';
 const initials = (value: string) => value.split(/[ @._-]/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 const humanize = (value: string) => value.replaceAll('_', ' ');
+const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
+const toSastInput = (value: Date) => new Date(value.getTime() + SAST_OFFSET_MS).toISOString().slice(0, 16);
+function southAfricanDayBounds(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Johannesburg', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
+  const part = (type: string) => parts.find((entry) => entry.type === type)?.value ?? '';
+  const start = new Date(`${part('year')}-${part('month')}-${part('day')}T00:00:00+02:00`);
+  return { from: start.toISOString(), to: new Date(start.getTime() + 24 * 60 * 60 * 1000).toISOString() };
+}
+
+function useAgencyRealtime() {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase.channel('agency-operations-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fleet_assignments' }, () => {
+        void queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListItinerariesQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: ['/api/fleet/availability'] });
+        void queryClient.invalidateQueries({ queryKey: ['/api/itineraries'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'itineraries' }, () => {
+        void queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListItinerariesQueryKey() });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'popia_dsr_requests' }, () => {
+        void queryClient.invalidateQueries({ queryKey: getListDsrRequestsQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+      })
+      .subscribe();
+    return () => { void supabase?.removeChannel(channel); };
+  }, [queryClient]);
+}
 
 export function WorkspaceShell({ children, flightPage = false }: { children: ReactNode; flightPage?: boolean }) {
   const [path] = useLocation();
@@ -123,6 +159,7 @@ function StatTile({ label, value, note, icon: Icon, accent }: { label: string; v
 }
 
 export function DashboardPage() {
+  useAgencyRealtime();
   const summary = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 60_000 } });
   const itineraries = useListItineraries({ query: { queryKey: getListItinerariesQueryKey(), refetchOnMount: 'always' } });
   const flights = useGetFlights({ query: { queryKey: ['/api/flights'], refetchInterval: 30_000 } });
@@ -130,7 +167,7 @@ export function DashboardPage() {
   const items = itineraries.data ?? [];
   const flightCount = flightSummary.data?.totalFlights ?? flights.data?.flights.length ?? 0;
   return <div className="workspace-page">
-    <PageHeading kicker="TUESDAY · OPERATIONS DESK" title="Good day, team." description="Your travel movements, vehicles and live airspace at a glance." actions={<Link href="/dashboard/bookings/new" className="button-primary" data-testid="button-new-booking"><Plus size={16} /> Record booking</Link>} />
+     <PageHeading kicker="AGENCY WORKSPACE · SOUTH AFRICA" title="Good day, team." description="Your travel movements, vehicles and live airspace at a glance." actions={<Link href="/dashboard/bookings/new" className="button-primary" data-testid="button-new-booking"><Plus size={16} /> Record booking</Link>} />
     {(summary.isError || itineraries.isError) && <ErrorPanel message="Operations summaries are unavailable. Your session is still active; retry the connection." retry={() => { void summary.refetch(); void itineraries.refetch(); }} />}
     <div className="stat-grid">
       {summary.isLoading ? <SkeletonBlock lines={4} /> : <StatTile label="Active itineraries" value={summary.data?.totalItineraries ?? '—'} note="Bookings on the books" icon={CalendarDays} />}
@@ -169,7 +206,7 @@ export function DashboardPage() {
 
 type SegmentForm = { flight_number: string; airline: string; origin: string; destination: string; departure_time: string; arrival_time: string; terminal: string };
 const blankSegment = (): SegmentForm => ({ flight_number: '', airline: '', origin: '', destination: '', departure_time: '', arrival_time: '', terminal: '' });
-const toIso = (value: string) => value ? new Date(value).toISOString() : '';
+const toIso = (value: string) => value ? new Date(`${value}:00+02:00`).toISOString() : '';
 export function NewBookingPage() {
   const create = useCreateItinerary();
   const queryClient = useQueryClient();
@@ -207,7 +244,7 @@ export function NewBookingPage() {
     <form className="booking-form" onSubmit={submit}>
       <section className="form-section">
         <div className="form-section-head"><span className="section-number">01</span><div><h2>Passenger details</h2><p>Share only what is required for this trip.</p></div></div>
-        <div className="form-grid two"><label>Client name <input required maxLength={160} value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Full name" data-testid="input-client-name" /></label><label>Email address <input type="email" maxLength={320} value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder="client@example.co.za" data-testid="input-client-email" /></label><label>Phone number <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27" data-testid="input-client-phone" /></label><label>Passport number <input value={passport} onChange={(e) => setPassport(e.target.value)} placeholder="Optional" data-testid="input-client-passport" /></label><label className="form-full">South African ID number <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="Optional" data-testid="input-client-id" /></label></div>
+        <div className="form-grid two"><label>Client name <input required maxLength={160} value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Full name" data-testid="input-client-name" /></label><label>Email address <input type="email" required maxLength={320} value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder="client@example.co.za" data-testid="input-client-email" /></label><label>Phone number · international format <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27820000000" data-testid="input-client-phone" /></label><label>Passport number <input value={passport} onChange={(e) => setPassport(e.target.value)} placeholder="Optional" data-testid="input-client-passport" /></label><label className="form-full">South African ID number <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="Optional" data-testid="input-client-id" /></label></div>
       </section>
       <section className="form-section">
         <div className="form-section-head"><span className="section-number">02</span><div><h2>Flight segments</h2><p>Times are stored as ISO timestamps. Local time is shown in Johannesburg.</p></div></div>
@@ -217,14 +254,15 @@ export function NewBookingPage() {
         {segments.length < 12 && <button type="button" className="add-segment" onClick={() => setSegments((current) => [...current, blankSegment()])}><Plus size={14} /> Add another segment <span>UP TO 12</span></button>}
       </section>
       {error && <div className="form-error" role="alert"><AlertCircle size={16} />{error}</div>}
-      <div className="form-actions"><span><ShieldCheck size={14} /> Personal details are handled under POPIA.</span><button className="button-primary" disabled={create.isPending} data-testid="button-save-booking">{create.isPending ? 'Saving booking…' : <>Save booking <ArrowRight size={15} /></>}</button></div>
+      <div className="form-actions"><span><ShieldCheck size={14} /> Selected identity and contact fields are encrypted at rest.</span><button className="button-primary" disabled={create.isPending} data-testid="button-save-booking">{create.isPending ? 'Saving booking…' : <>Save booking <ArrowRight size={15} /></>}</button></div>
     </form>
   </div>;
 }
 
 function AssignmentForm({ itineraryId, clientEmail, departureAt, arrivalAt, refresh }: { itineraryId: string; clientEmail: string; departureAt?: string | null; arrivalAt?: string | null; refresh: () => void }) {
-  const from = departureAt ? new Date(new Date(departureAt).getTime() - 3 * 60 * 60 * 1000).toISOString() : '';
-  const to = arrivalAt ? new Date(new Date(arrivalAt).getTime() + 3 * 60 * 60 * 1000).toISOString() : '';
+  const dayBounds = useMemo(() => southAfricanDayBounds(arrivalAt ?? departureAt), [arrivalAt, departureAt]);
+  const from = dayBounds?.from ?? '';
+  const to = dayBounds?.to ?? '';
   const availabilityParams = useMemo(() => ({ from, to }), [from, to]);
   const availability = useGetFleetAvailability(availabilityParams, { query: { enabled: Boolean(from && to), queryKey: ['/api/fleet/availability', availabilityParams] } });
   const create = useCreateFleetAssignment();
@@ -232,35 +270,47 @@ function AssignmentForm({ itineraryId, clientEmail, departureAt, arrivalAt, refr
   const [vehicleId, setVehicleId] = useState('');
   const [driver, setDriver] = useState('');
   const [contact, setContact] = useState('');
-  const [pickupAt, setPickupAt] = useState(departureAt ? new Date(new Date(departureAt).getTime() - 90 * 60 * 1000).toISOString().slice(0, 16) : '');
-  const [dropoffAt, setDropoffAt] = useState(arrivalAt ? new Date(arrivalAt).toISOString().slice(0, 16) : '');
+  const [pickupAt, setPickupAt] = useState(arrivalAt ? toSastInput(new Date(new Date(arrivalAt).getTime() + 15 * 60 * 1000)) : departureAt ? toSastInput(new Date(new Date(departureAt).getTime() - 90 * 60 * 1000)) : '');
+  const [dropoffAt, setDropoffAt] = useState(arrivalAt ? toSastInput(new Date(new Date(arrivalAt).getTime() + 75 * 60 * 1000)) : departureAt ? toSastInput(new Date(departureAt)) : '');
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  const [notificationNotice, setNotificationNotice] = useState('');
   const vehicles = availability.data ?? [];
-  const availableVehicles = vehicles.filter((item) => item.vehicle.active && item.available);
+  const activeVehicles = vehicles.filter((item) => item.vehicle.active);
+  const freeVehicles = activeVehicles.filter((item) => item.available);
+  const selectTimelineSlot = (vehicle: { id: string }, slotTime: Date) => {
+    setVehicleId(vehicle.id);
+    setPickupAt(toSastInput(slotTime));
+    setDropoffAt(toSastInput(new Date(slotTime.getTime() + 60 * 60 * 1000)));
+    setOpen(true);
+    setError('');
+  };
   async function submit(event: FormEvent) {
     event.preventDefault(); setError('');
     if (!vehicleId) { setError('Choose an available vehicle for this transfer.'); return; }
     const data: AssignmentInput = { itinerary_id: itineraryId, vehicle_id: vehicleId, driver_name: driver.trim(), driver_contact: contact.trim(), pickup_at: toIso(pickupAt), dropoff_at: toIso(dropoffAt), pickup_address: pickup.trim(), dropoff_address: dropoff.trim(), client_email: clientEmail, notes: notes.trim() || null };
-    create.mutate({ data }, { onSuccess: () => { setOpen(false); refresh(); }, onError: (reason) => setError(reason instanceof Error ? reason.message : 'Vehicle assignment failed.') });
+    create.mutate({ data }, { onSuccess: (result) => { setOpen(false); setNotificationNotice(result.notification_sent ? 'Transfer saved and itinerary email sent.' : result.notification_message || 'Transfer saved, but the itinerary email was not sent.'); refresh(); }, onError: (reason) => setError(reason instanceof Error ? reason.message : 'Vehicle assignment failed.') });
   }
-  if (!from || !to) return <div className="setup-note"><CalendarDays size={16} /><span>Add flight departure and arrival times before checking the fleet.</span></div>;
+  if (!from || !to) return <div className="setup-note"><CalendarDays size={16} /><span>Add a flight time before checking the fleet schedule.</span></div>;
   return <div className="assignment-availability">
-    <div className="availability-banner"><div><span className="section-kicker">FLEET WINDOW</span><strong>{availability.isLoading ? 'Checking availability…' : availability.isError ? 'Availability unavailable' : `${availableVehicles.length} vehicles available`}</strong><small>{dateLabel(departureAt)} — {dateLabel(arrivalAt)}</small></div><button className="button-outline" type="button" disabled={availability.isLoading} onClick={() => void availability.refetch()}><RefreshCw size={14} /> Refresh</button></div>
+    {notificationNotice && <div className="setup-note" role="status">{notificationNotice}</div>}
+    <div className="availability-banner"><div><span className="section-kicker">FLEET WINDOW · SAST</span><strong>{availability.isLoading ? 'Checking availability…' : availability.isError ? 'Availability unavailable' : `${freeVehicles.length} vehicles free all day`}</strong><small>{dateLabel(arrivalAt ?? departureAt)}</small></div><button className="button-outline" type="button" disabled={availability.isLoading} onClick={() => void availability.refetch()}><RefreshCw size={14} /> Refresh</button></div>
     {availability.isError && <ErrorPanel message="Vehicle availability could not be checked. Retry before assigning a transfer." retry={() => void availability.refetch()} />}
     {!availability.isLoading && !availability.isError && vehicles.length === 0 && <div className="empty-inline">No fleet vehicles are configured for this time range.</div>}
-    {!availability.isLoading && vehicles.length > 0 && <div className="vehicle-options">{vehicles.map((item) => <div className={`vehicle-option${item.available ? ' vehicle-free' : ''}`} key={item.vehicle.id}><span className="vehicle-icon"><CarFront size={17} /></span><span className="vehicle-copy"><b>{item.vehicle.registration}</b><small>{item.vehicle.make_model} · seats {item.vehicle.capacity}</small></span><span className={`availability-tag ${item.available ? 'free' : ''}`}>{item.available ? 'AVAILABLE' : `${item.conflicts.length} CONFLICT${item.conflicts.length === 1 ? '' : 'S'}`}</span></div>)}</div>}
-    {!open ? <button type="button" className="button-primary" disabled={availableVehicles.length === 0} onClick={() => { setVehicleId(availableVehicles[0]?.vehicle.id ?? ''); setOpen(true); }}><Plus size={15} /> Assign transfer</button> :
+    {!availability.isLoading && !availability.isError && vehicles.length > 0 && dayBounds && <VehicleTimelineGrid rows={vehicles} dayStart={dayBounds.from} flightStart={departureAt} flightEnd={arrivalAt} onSlotClick={selectTimelineSlot} />}
+    {!availability.isLoading && vehicles.length > 0 && <div className="vehicle-options">{vehicles.map((item) => <div className={`vehicle-option${item.available ? ' vehicle-free' : ''}`} key={item.vehicle.id}><span className="vehicle-icon"><CarFront size={17} /></span><span className="vehicle-copy"><b>{item.vehicle.registration}</b><small>{item.vehicle.make_model} · seats {item.vehicle.capacity}</small></span><span className={`availability-tag ${item.available ? 'free' : ''}`}>{item.available ? 'FREE ALL DAY' : `${item.conflicts.length} BOOKED WINDOW${item.conflicts.length === 1 ? '' : 'S'}`}</span></div>)}</div>}
+    {!open ? <button type="button" className="button-primary" disabled={activeVehicles.length === 0} onClick={() => { setVehicleId(freeVehicles[0]?.vehicle.id ?? activeVehicles[0]?.vehicle.id ?? ''); setOpen(true); }}><Plus size={15} /> Assign transfer</button> :
       <form className="assignment-form" onSubmit={submit}><div className="form-section-head compact"><span className="section-number">+</span><div><h2>Assign vehicle & driver</h2><p>Pickup and drop-off information is shared with the passenger.</p></div><button type="button" className="quiet-icon" onClick={() => setOpen(false)}><X size={15} /></button></div>
-        <div className="form-grid two"><label>Available vehicle <select required value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>{availableVehicles.map((item) => <option value={item.vehicle.id} key={item.vehicle.id}>{item.vehicle.registration} · {item.vehicle.make_model}</option>)}</select></label><label>Driver name <input required value={driver} onChange={(e) => setDriver(e.target.value)} /></label><label>Driver contact <input required value={contact} onChange={(e) => setContact(e.target.value)} /></label><label>Pickup time <input required type="datetime-local" value={pickupAt} onChange={(e) => setPickupAt(e.target.value)} /></label><label>Drop-off time <input required type="datetime-local" value={dropoffAt} onChange={(e) => setDropoffAt(e.target.value)} /></label><label>Pickup address <input required value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Airport arrivals, terminal…" /></label><label>Drop-off address <input required value={dropoff} onChange={(e) => setDropoff(e.target.value)} placeholder="Hotel or destination" /></label><label className="form-full">Driver / passenger notes <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" /></label></div>
+        <div className="form-grid two"><label>Vehicle <select required value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>{activeVehicles.map((item) => <option value={item.vehicle.id} key={item.vehicle.id}>{item.vehicle.registration} · {item.vehicle.make_model}{item.available ? ' · free all day' : ` · ${item.conflicts.length} booked windows`}</option>)}</select></label><label>Driver name <input required value={driver} onChange={(e) => setDriver(e.target.value)} /></label><label>Driver contact · international format <input required value={contact} onChange={(e) => setContact(e.target.value)} placeholder="+27820000000" /></label><label>Pickup time · SAST <input required type="datetime-local" value={pickupAt} onChange={(e) => setPickupAt(e.target.value)} /></label><label>Drop-off time · SAST <input required type="datetime-local" value={dropoffAt} onChange={(e) => setDropoffAt(e.target.value)} /></label><label>Pickup address <input required value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Airport arrivals, terminal…" /></label><label>Drop-off address <input required value={dropoff} onChange={(e) => setDropoff(e.target.value)} placeholder="Hotel or destination" /></label><label className="form-full">Driver / passenger notes <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" /></label></div>
         {error && <div className="form-error"><AlertCircle size={15} />{error}</div>}<div className="dialog-actions"><button type="button" className="button-quiet" onClick={() => setOpen(false)}>Cancel</button><button type="submit" className="button-primary" disabled={create.isPending}>{create.isPending ? 'Assigning…' : 'Confirm assignment'}</button></div>
       </form>}
   </div>;
 }
 
 export function ItineraryPage() {
+  useAgencyRealtime();
   const params = useParams<{ id: string }>();
   const id = params.id ?? '';
   const queryClient = useQueryClient();
@@ -303,6 +353,7 @@ export function ItineraryPage() {
 const requestTypes: DsrRequestInputRequestType[] = ['access', 'erasure', 'correction', 'objection'];
 const dsrFilterOptions: (ListDsrRequestsStatus | 'all')[] = ['all', 'pending', 'verified', 'processing', 'completed', 'rejected'];
 export function PrivacyDeskPage() {
+  useAgencyRealtime();
   const [filter, setFilter] = useState<ListDsrRequestsStatus | 'all'>('all');
   const [page, setPage] = useState(1);
   const params = useMemo(() => ({ page, limit: 10, ...(filter === 'all' ? {} : { status: filter }) }), [page, filter]);
@@ -335,15 +386,16 @@ export function PublicPrivacyRequestPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [type, setType] = useState<DsrRequestInputRequestType>('access');
-  const [accepted, setAccepted] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [submission, setSubmission] = useState<{ sent: boolean; message: string } | null>(null);
   const [error, setError] = useState('');
   function submit(event: FormEvent) {
     event.preventDefault(); setError('');
-    create.mutate({ data: { subject_email: email.trim(), subject_name: name.trim() || null, request_type: type } }, { onSuccess: () => setAccepted(true), onError: (reason) => setError(reason instanceof Error ? reason.message : 'Request could not be submitted. Please try again.') });
+    create.mutate({ data: { subject_email: email.trim(), subject_name: name.trim() || null, request_type: type } }, { onSuccess: (result) => setSubmission({ sent: result.verification_email_sent, message: result.message }), onError: (reason) => setError(reason instanceof Error ? reason.message : 'Request could not be submitted. Please try again.') });
   }
   return <div className="public-privacy-page"><header className="public-privacy-top"><Link href="/" className="agency-brand"><span className="agency-brand-mark"><Plane size={17} /></span><span className="agency-brand-copy"><strong>SA TRAVEL</strong><small>PRIVACY CENTRE</small></span></Link><span>POPIA · DATA RIGHTS</span></header>
     <main className="public-privacy-main"><div className="public-side-copy"><div className="section-kicker">YOUR INFORMATION · YOUR CHOICE</div><h1>A clear way to exercise your rights.</h1><p>Submit a request relating to personal information held by SA Travel. We will email you a verification link before our team begins processing it.</p><div className="public-promise"><ShieldCheck size={18} /><span><b>Verification comes first.</b><small>We use your email to verify your identity and keep you informed about your request.</small></span></div></div>
-      <section className="public-form-card">{accepted ? <div className="success-state"><span className="success-seal"><Check size={22} /></span><div className="section-kicker">REQUEST RECEIVED</div><h2>Check your inbox.</h2><p>If the address can receive requests, a verification email is on its way. Follow that link to confirm your identity before the privacy team can proceed.</p><Link href="/" className="text-action">Return to sign in <ArrowRight size={14} /></Link></div> : <><div className="section-kicker">SUBMIT A REQUEST</div><h2>How can we help?</h2><p>Fields marked with an asterisk are required.</p><form className="public-form" onSubmit={submit}><label>Your name <span>OPTIONAL</span><input value={name} onChange={(e) => setName(e.target.value)} maxLength={160} placeholder="Name as held by SA Travel" /></label><label>Email address <b>*</b><input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} maxLength={320} placeholder="you@example.com" /></label><label>Request type <b>*</b><select required value={type} onChange={(e) => setType(e.target.value as DsrRequestInputRequestType)}>{requestTypes.map((value) => <option value={value} key={value}>{humanize(value)}</option>)}</select></label><label className="consent-check"><input type="checkbox" required checked={accepted} onChange={(e) => setAccepted(e.target.checked)} /><span>I confirm this request concerns my personal information or that I am authorised to act on the subject’s behalf.</span></label>{error && <div className="form-error"><AlertCircle size={15} />{error}</div>}<button className="button-primary" disabled={create.isPending}>{create.isPending ? 'Submitting request…' : <>Send verification email <ArrowRight size={15} /></>}</button></form><div className="public-form-foot"><FileKey2 size={13} /> We do not request identity documents through this form.</div></>}</section></main>
+      <section className="public-form-card">{submission ? <div className="success-state"><span className="success-seal">{submission.sent ? <Check size={22} /> : <AlertCircle size={22} />}</span><div className="section-kicker">REQUEST RECEIVED</div><h2>{submission.sent ? 'Check your inbox.' : 'Request recorded.'}</h2><p>{submission.message}</p><Link href="/" className="text-action">Return to sign in <ArrowRight size={14} /></Link></div> : <><div className="section-kicker">SUBMIT A REQUEST</div><h2>How can we help?</h2><p>Fields marked with an asterisk are required.</p><form className="public-form" onSubmit={submit}><label>Your name <span>OPTIONAL</span><input value={name} onChange={(e) => setName(e.target.value)} maxLength={160} placeholder="Name as held by SA Travel" /></label><label>Email address <b>*</b><input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} maxLength={320} placeholder="you@example.com" /></label><label>Request type <b>*</b><select required value={type} onChange={(e) => setType(e.target.value as DsrRequestInputRequestType)}>{requestTypes.map((value) => <option value={value} key={value}>{humanize(value)}</option>)}</select></label><label className="consent-check"><input type="checkbox" required checked={consentConfirmed} onChange={(e) => setConsentConfirmed(e.target.checked)} /><span>I confirm this request concerns my personal information or that I am authorised to act on the subject’s behalf.</span></label>{error && <div className="form-error"><AlertCircle size={15} />{error}</div>}<button className="button-primary" disabled={create.isPending}>{create.isPending ? 'Submitting request…' : <>Send verification email <ArrowRight size={15} /></>}</button></form><div className="public-form-foot"><FileKey2 size={13} /> We do not request identity documents through this form.</div></>}</section></main>
     <footer className="public-footer"><span>SA TRAVEL · PRIVACY CENTRE</span><Link href="/">STAFF SIGN IN <ArrowUpRight size={11} /></Link></footer></div>;
 }
 

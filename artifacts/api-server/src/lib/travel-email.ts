@@ -128,9 +128,10 @@ export function extractSegments(flightData: unknown): FlightSegment[] {
         const item = record(raw);
         const origin = record(item.origin);
         const destination = record(item.destination);
+        const marketingCarrier = record(item.marketing_carrier);
         return segmentFrom({
           flight_number: item.flight_number,
-          airline: item.marketing_carrier?.name ?? item.marketing_carrier,
+          airline: text(marketingCarrier.name) ?? item.marketing_carrier,
           origin: origin.iata_code,
           destination: destination.iata_code,
           departure_time: item.departing_at,
@@ -180,7 +181,7 @@ function renderSegments(segments: FlightSegment[]): { html: string; text: string
   const html = segments.map((segment, index) => {
     const domestic = !isInternationalLeg(segment.origin, segment.destination);
     return `<section style="padding:18px 0;border-bottom:1px solid #2d3555">
-      <p style="margin:0 0 8px;color:#8892a4;font-size:12px">Segment ${index + 1} of ${segments.length} · ${domestic ? "South Africa" : "International"}</p>
+      <p style="margin:0 0 8px;color:#8892a4;font-size:12px">${domestic ? "🇿🇦 South Africa" : "🌍 International"} · Segment ${index + 1} of ${segments.length}</p>
       <h2 style="margin:0 0 12px;color:#e8eaf0;font-size:20px">${escapeHtml(segment.origin)} → ${escapeHtml(segment.destination)}</h2>
       <p style="margin:4px 0;color:#8892a4">Flight: ${escapeHtml(segment.flight_number ?? "To be confirmed")} · Airline: ${escapeHtml(segment.airline ?? "To be confirmed")}</p>
       <p style="margin:4px 0;color:#8892a4">Date: ${escapeHtml(formatSADate(segment.departure_time))}</p>
@@ -350,15 +351,18 @@ export async function sendDPONotification(
 export async function sendErasureConfirmation(
   subjectEmail: string,
   recordCount: number,
+  dsrRef: string,
 ): Promise<ResendResult> {
   const subject = "Your data request has been completed — SA Travel Agency";
+  const reference = escapeHtml(dsrRef);
   const html = `<div style="background:#0f1117;padding:28px 12px;font-family:'Helvetica Neue',Arial,sans-serif;color:#e8eaf0">
     <div style="max-width:600px;margin:0 auto;background:#1a1f2e;border:1px solid #2d3555;border-radius:14px;padding:28px">
       <p style="color:#00b4d8;font-size:12px;text-transform:uppercase;letter-spacing:2px">SA Travel Agency</p>
       <h1 style="font-size:22px">Your erasure request is complete</h1>
       <p>We redacted ${recordCount} booking record(s) associated with your request.</p>
-      <p style="color:#8892a4">This confirmation relates to your data request only.</p>
+      <p>Request reference: ${reference}</p>
+      <p style="color:#8892a4">Certain records may be retained where required for legal or regulatory purposes.</p>
     </div></div>`;
-  const plain = `SA Travel Agency\nYour erasure request is complete.\nWe redacted ${recordCount} booking record(s) associated with your request.`;
+  const plain = `SA Travel Agency\nYour erasure request is complete.\nWe redacted ${recordCount} booking record(s) associated with your request.\nRequest reference: ${dsrRef}\nCertain records may be retained where required for legal or regulatory purposes.`;
   return sendResendEmail(subjectEmail, subject, html, plain, [{ name: "type", value: "popia-erasure" }]);
 }

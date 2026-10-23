@@ -1,73 +1,42 @@
 import type { RequestHandler } from "express";
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-interface CloudflareKvBinding {
-  get(key: string, options: { type: "json" }): Promise<RateLimitEntry | null>;
-  put(key: string, value: string, options: { expirationTtl: number }): Promise<void>;
-}
-
-const memoryEntries = new Map<string, RateLimitEntry>();
-let requestCount = 0;
+import { createHmac } from "node:crypto";
+import { getAdminClient, safeDatabaseErrorCode } from "../lib/supabase-admin";
 
 function getClientIp(req: Parameters<RequestHandler>[0]): string {
   const cfIp = req.header("cf-connecting-ip");
   if (cfIp) return cfIp.trim();
 
   const forwarded = req.header("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
+  if (forwarded) return forwarded.split(",").at(-1)?.trim() || "unknown";
 
   return req.socket.remoteAddress ?? "unknown";
 }
 
-function getKvBinding(): CloudflareKvBinding | undefined {
-  return (globalThis as typeof globalThis & {
-    __CF_KV_RATE_LIMIT__?: CloudflareKvBinding;
-  }).__CF_KV_RATE_LIMIT__;
-}
-
-function cleanupExpired(now: number): void {
-  for (const [key, entry] of memoryEntries) {
-    if (entry.resetAt <= now) memoryEntries.delete(key);
-  }
-}
-
 export function rateLimiter(maxRequests: number, windowMs: number): RequestHandler {
   return async (req, res, next): Promise<void> => {
-    const now = Date.now();
-    const ip = getClientIp(req);
-    const key = `rl:${ip}`;
-    const kv = getKvBinding();
-
     try {
-      let entry: RateLimitEntry | null;
-      if (kv) {
-        entry = await kv.get(key, { type: "json" });
-        if (!entry || entry.resetAt <= now) {
-          entry = { count: 0, resetAt: now + windowMs };
-        }
-      } else {
-        entry = memoryEntries.get(key) ?? null;
-        if (!entry || entry.resetAt <= now) {
-          entry = { count: 0, resetAt: now + windowMs };
-        }
+      const hmacKey = process.env.POPIA_RATE_LIMIT_HMAC_KEY;
+      if (!hmacKey || hmacKey.length < 32) {
+        res.status(503).json({
+          error: "RATE_LIMIT_NOT_CONFIGURED",
+          message: "Privacy request protection is not configured.",
+        });
+        return;
       }
-
-      entry.count += 1;
-      const ttlSeconds = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
-      if (kv) {
-        await kv.put(key, JSON.stringify(entry), { expirationTtl: ttlSeconds });
-      } else {
-        memoryEntries.set(key, entry);
-        requestCount += 1;
-        if (requestCount % 100 === 0) cleanupExpired(now);
+      const keyHash = createHmac("sha256", hmacKey).update(getClientIp(req)).digest("hex");
+      const { data, error } = await getAdminClient().rpc("popia_consume_rate_limit", {
+        p_key_hash: keyHash,
+        p_max_requests: maxRequests,
+        p_window_seconds: Math.max(1, Math.ceil(windowMs / 1000)),
+      });
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] as { allowed?: unknown; retry_after_seconds?: unknown } | undefined : undefined;
+      if (!result || typeof result.allowed !== "boolean") {
+        throw new Error("RATE_LIMIT_RPC_INVALID_RESPONSE");
       }
-
-      if (entry.count > maxRequests) {
-        res.setHeader("Retry-After", String(ttlSeconds));
+      if (!result.allowed) {
+        const retryAfter = typeof result.retry_after_seconds === "number" ? Math.max(1, result.retry_after_seconds) : Math.ceil(windowMs / 1000);
+        res.setHeader("Retry-After", String(retryAfter));
         res.status(429).json({
           error: "RATE_LIMITED",
           message: "Too many requests. Please try again later.",
@@ -76,8 +45,8 @@ export function rateLimiter(maxRequests: number, windowMs: number): RequestHandl
       }
 
       next();
-    } catch {
-      req.log.error({ code: "RATE_LIMIT_STORAGE_ERROR" }, "Rate limiter storage failed");
+    } catch (error) {
+      req.log.error({ code: safeDatabaseErrorCode(error) }, "Privacy rate limiter storage failed");
       res.status(503).json({
         error: "RATE_LIMIT_UNAVAILABLE",
         message: "This request cannot be processed right now.",

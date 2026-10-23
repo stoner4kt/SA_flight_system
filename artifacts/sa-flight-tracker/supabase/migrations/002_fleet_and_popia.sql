@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.itineraries (
   phone_enc TEXT,
   passport_enc TEXT,
   sa_id_enc TEXT,
-  flight_data JSONB NOT NULL DEFAULT '{"segments":[]}'::JSONB,
+  flight_data JSONB DEFAULT '{"segments":[]}'::JSONB,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
   created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -184,14 +184,23 @@ GRANT USAGE, SELECT ON SEQUENCE public.itinerary_ref_seq TO service_role;
 
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime')
-     AND NOT EXISTS (
-       SELECT 1 FROM pg_publication_tables
-       WHERE pubname = 'supabase_realtime'
-         AND schemaname = 'public'
-         AND tablename = 'fleet_assignments'
-     ) THEN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'itineraries'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.itineraries;
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'fleet_assignments'
+    ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.fleet_assignments;
+    END IF;
   END IF;
 END;
 $$;

@@ -11,10 +11,11 @@ app.use(
     logger,
     serializers: {
       req(req) {
+        const pathname = req.url?.split("?")[0] ?? "";
         return {
           id: req.id,
           method: req.method,
-          url: req.url?.split("?")[0],
+          url: pathname.replace(/^\/api\/popia\/verify\/[^/]+$/, "/api/popia/verify/[redacted]"),
         };
       },
       res(res) {

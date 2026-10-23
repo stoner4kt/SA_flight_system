@@ -1,7 +1,25 @@
 project_id = "sa-flight-tracker"
 
+[auth]
+site_url = "http://localhost:5173"
+enable_signup = false
+jwt_expiry = 3600
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+
 [functions.refresh-flights]
 verify_jwt = true
 
 [functions.cleanup-flights]
+verify_jwt = true
+
+[functions.post-assignment-notify]
+verify_jwt = true
+
+[functions.popia-token-cleanup]
+verify_jwt = true
+
+[functions.tracking-state-broadcast]
 verify_jwt = true

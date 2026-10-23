@@ -11,10 +11,11 @@ import {
   getSouthAfricanAirportRoutes,
   summarizeFlights,
 } from "../lib/aviation-data";
+import { requireAuth } from "../middlewares/require-auth";
 
 const router: IRouter = Router();
 
-router.get("/flights", async (req, res): Promise<void> => {
+router.get("/flights", requireAuth, async (req, res): Promise<void> => {
   try {
     const snapshot = await getFlightsSnapshot();
     res.json(GetFlightsResponse.parse(snapshot));
@@ -26,7 +27,7 @@ router.get("/flights", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/flights/summary", async (req, res): Promise<void> => {
+router.get("/flights/summary", requireAuth, async (req, res): Promise<void> => {
   try {
     const summary = summarizeFlights(await getFlightsSnapshot());
     res.json(GetFlightSummaryResponse.parse(summary));
@@ -38,7 +39,7 @@ router.get("/flights/summary", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/airports", async (req, res): Promise<void> => {
+router.get("/airports", requireAuth, async (req, res): Promise<void> => {
   try {
     const airports = await getSouthAfricanAirports();
     res.json(GetAirportsResponse.parse(airports));
@@ -50,7 +51,7 @@ router.get("/airports", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/airport-routes", async (req, res): Promise<void> => {
+router.get("/airport-routes", requireAuth, async (req, res): Promise<void> => {
   try {
     const routes = await getSouthAfricanAirportRoutes();
     res.json(GetAirportRoutesResponse.parse(routes));

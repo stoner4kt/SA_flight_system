@@ -349,7 +349,7 @@ function Airports() {
 function About() {
   const health = useHealthCheck({ query: { ...usePolling, queryKey: ['/api/healthz'] } });
   return <div className="page info-layout">
-    <div className="info-hero"><div className="eyebrow">SYSTEM NOTES · SOURCES & LIMITATIONS</div><h1>Know what the signal says — and what it doesn’t.</h1><p>SA Flight Tracker turns live aircraft position reports and open airport data into a clear regional picture. It is an observation tool, not a flight-plan service or an air traffic control system.</p></div>
+    <div className="info-hero"><div className="eyebrow">SYSTEM NOTES · SOURCES & LIMITATIONS</div><h1>Know what the signal says — and what it doesn’t.</h1><p>SA Travel brings client bookings and ground transfers together with live aircraft position reports and open airport data. The airspace map is an observation tool, not a flight-plan service or an air traffic control system.</p></div>
     <div className="info-columns">
       <section className="info-card"><h2>Data sources</h2>
         <div className="source-row"><strong>OpenSky Network</strong><span>Live aircraft state vectors</span></div>
